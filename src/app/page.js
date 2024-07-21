@@ -3,18 +3,30 @@
 import { useState, useEffect } from "react";
 import { data as clgData } from "../../src/data/data.js";
 import { useTheme } from "../../src/context/ThemeContext.jsx";
-import { motion } from "framer-motion";
 import { MdSunny } from "react-icons/md";
 import { IoMdMoon } from "react-icons/io";
 import Loader from "../../src/components/Loader.jsx";
-import CollegeList from "../../src/components/CollegeList.jsx";
-import CollegeInfo from "../../src/components/CollegeInfo.jsx";
+
 import { FaUser } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { FiLogOut } from "react-icons/fi";
-import FavoritesModal from "@/components/FavouritesModal.jsx";
+
+import dynamic from "next/dynamic";
+
+const CollegeList = dynamic(
+  () => import("../../src/components/CollegeList.jsx"),
+  { ssr: false }
+);
+const CollegeInfo = dynamic(
+  () => import("../../src/components/CollegeInfo.jsx"),
+  { ssr: false }
+);
+const FavoritesModal = dynamic(
+  () => import("@/components/FavouritesModal.jsx"),
+  { ssr: false }
+);
 
 export default function Home() {
   const router = useRouter();
@@ -61,9 +73,8 @@ export default function Home() {
       }
     };
 
-    if (typeof window !== "undefined") {
-      getUserDetails();
-    }
+    console.log("Fetching user details");
+    getUserDetails();
   }, [favorites]);
 
   const handleClgClick = (clg) => {
@@ -139,12 +150,7 @@ export default function Home() {
       }`}
     >
       <div className="lg:hidden">
-        <motion.div
-          initial={{ x: "-100%" }}
-          animate={{ x: showClgList ? 0 : "-100%" }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="fixed inset-0 bg-none bg-opacity-75 z-50 overflow-y-scroll"
-        >
+        <div className="fixed inset-0 bg-none bg-opacity-75 z-50 overflow-y-scroll">
           <div
             className={`w-[75%] p-4 ${
               theme === "light" ? "bg-gray-400" : "bg-[#202226]"
@@ -171,7 +177,7 @@ export default function Home() {
               />
             )}
           </div>
-        </motion.div>
+        </div>
 
         <button
           className="fixed bottom-6 right-6 bg-gray-900 rounded-full p-3 text-white z-50 block lg:hidden opacity-80"
@@ -234,11 +240,7 @@ export default function Home() {
               </button>
 
               {showDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
+                <div
                   className={`absolute lg:left-20 lg:right-0 right-1 top-5 w-56 mt-2 ${
                     theme === "light" ? "bg-gray-400" : "bg-[#202226]"
                   } rounded-3xl shadow-xl z-60`}
@@ -287,7 +289,7 @@ export default function Home() {
                       <FiLogOut />
                     </button>
                   </div>
-                </motion.div>
+                </div>
               )}
             </div>
           </div>
