@@ -1,113 +1,307 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import { data as clgData } from "../../src/data/data.js";
+import { useTheme } from "../../src/context/ThemeContext.jsx";
+import { motion } from "framer-motion";
+import { MdSunny } from "react-icons/md";
+import { IoMdMoon } from "react-icons/io";
+import Loader from "../../src/components/Loader.jsx";
+import CollegeList from "../../src/components/CollegeList.jsx";
+import CollegeInfo from "../../src/components/CollegeInfo.jsx";
+import { FaUser } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { FiLogOut } from "react-icons/fi";
+import FavoritesModal from "@/components/FavouritesModal.jsx";
 
 export default function Home() {
+  const router = useRouter();
+  const [clgs, setClgs] = useState([]);
+  const [selectedClg, setSelectedClg] = useState(null);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showClgList, setShowClgList] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [favorites, setFavorites] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    try {
+      setClgs(clgData);
+      setLoading(false);
+    } catch (error) {
+      setError(error);
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const getUserDetails = async () => {
+      try {
+        const res = await axios.get("/api/users/me");
+        console.log(res.data);
+        setData(res.data.data);
+
+        if (favorites.length === 0) {
+          setFavorites(res.data.data.favorites || []);
+        }
+      } catch (error) {
+        if (error.response) {
+          console.error("Error response:", error.response.data);
+        } else if (error.request) {
+          console.error("Error request:", error.request);
+        } else {
+          console.error("Error message:", error.message);
+        }
+        setError(error);
+      }
+    };
+
+    getUserDetails();
+  }, [favorites]);
+
+  const handleClgClick = (clg) => {
+    setSelectedClg(clg);
+    toggleClgList();
+  };
+
+  const toggleClgList = () => {
+    setShowClgList(!showClgList);
+  };
+
+  const handleUserClick = () => {
+    if (data) {
+      setShowDropdown(!showDropdown);
+    } else {
+      router.push("/login");
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await axios.get("/api/users/logout");
+      toast.success("Logout successful");
+      router.push("/login");
+    } catch (error) {
+      toast.error("Logout failed. Please try again.");
+      console.error(error);
+    }
+  };
+
+  const addToFavorites = async () => {
+    try {
+      await axios.post("/api/users/addfav", {
+        userId: data._id,
+        college: {
+          name: selectedClg.name,
+          photoUrl: selectedClg.img,
+        },
+      });
+
+      setFavorites([...favorites, selectedClg]);
+      toast.success("College added to favorites");
+    } catch (error) {
+      toast.error("Error adding college to favorites");
+      console.error(error);
+    }
+  };
+
+  const removeFromFavorites = async (collegeName) => {
+    try {
+      await axios.post("/api/users/remfav", {
+        userId: data._id,
+        collegeName,
+      });
+      setFavorites(
+        favorites.filter((favorite) => favorite.name !== collegeName)
+      );
+      toast.success("College removed from favorites");
+    } catch (error) {
+      toast.error("Error removing college from favorites");
+      console.error(error);
+    }
+  };
+
+  const isFavorite = selectedClg
+    ? favorites.some((fav) => fav.name === selectedClg.name)
+    : false;
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div
+      className={`min-h-screen flex font-abc ${
+        theme === "light" ? "bg-white" : "bg-[#36393E]"
+      }`}
+    >
+      <div className="lg:hidden">
+        <motion.div
+          initial={{ x: "-100%" }}
+          animate={{ x: showClgList ? 0 : "-100%" }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="fixed inset-0 bg-none bg-opacity-75 z-50 overflow-y-scroll"
+        >
+          <div
+            className={`w-[75%] p-4 ${
+              theme === "light" ? "bg-gray-400" : "bg-[#202226]"
+            } h-screen overflow-y-scroll rounded-r-3xl`}
           >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+            <div className="flex items-center justify-center">
+              <h1
+                className={`text-3xl ${
+                  theme === "light" ? "text-black" : "text-gray-100"
+                } mb-5`}
+              >
+                COLLEGE LIST
+              </h1>
+            </div>
+            {loading ? (
+              <Loader />
+            ) : error ? (
+              <div className="text-center text-red-500">No data to show</div>
+            ) : (
+              <CollegeList
+                clgs={clgData}
+                handleClgClick={handleClgClick}
+                showClgList={showClgList}
+              />
+            )}
+          </div>
+        </motion.div>
+
+        <button
+          className="fixed bottom-6 right-6 bg-gray-900 rounded-full p-3 text-white z-50 block lg:hidden opacity-80"
+          onClick={toggleClgList}
+        >
+          {showClgList ? "Close" : "Show List"}
+        </button>
+      </div>
+
+      <div className="flex w-full justify-center">
+        <div
+          className={`w-1/3 p-4 ${
+            theme === "light" ? "bg-gray-400" : "bg-[#202226]"
+          } h-screen overflow-y-scroll rounded-r-3xl hidden lg:block`}
+        >
+          <div className="flex items-center justify-center">
+            <h1
+              className={`text-3xl ${
+                theme === "light" ? "text-black" : "text-gray-100"
+              } mb-5`}
+            >
+              COLLEGE LIST
+            </h1>
+          </div>
+          {loading ? (
+            <Loader />
+          ) : error ? (
+            <div className="text-center text-red-500">No data to show</div>
+          ) : (
+            <CollegeList clgs={clgs} handleClgClick={handleClgClick} />
+          )}
+        </div>
+
+        <div
+          className={`w-2/3 p-4 ${
+            theme === "light" ? "bg-white" : "bg-[#36393E]"
+          }`}
+        >
+          <div className="flex items-center justify-center ">
+            <h1
+              className={`lg:text-3xl text-xl ${
+                theme === "light" ? "text-black" : "text-gray-100"
+              } mb-5 lg:font-normal font-bold`}
+            >
+              COLLEGE INFORMATION
+            </h1>
+
+            <button
+              className={`fixed top-6 right-6 bg-gray-900 rounded-full p-3 text-white z-50 block opacity-80`}
+              onClick={toggleTheme}
+            >
+              {theme === "light" ? <MdSunny /> : <IoMdMoon />}
+            </button>
+            <div className="relative">
+              <button
+                className="fixed top-24 md:top-6 md:right-24 right-6 bg-gray-900 rounded-full p-3 text-white z-40 block opacity-80"
+                onClick={handleUserClick}
+              >
+                <FaUser />
+              </button>
+
+              {showDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className={`absolute lg:left-20 lg:right-0 right-1 top-5 w-56 mt-2 ${
+                    theme === "light" ? "bg-gray-400" : "bg-[#202226]"
+                  } rounded-3xl shadow-xl z-60`}
+                >
+                  <div className="p-4 text-white ">
+                    {data ? (
+                      <>
+                        <p
+                          className={`text-lg font-semibold ${
+                            theme === "light"
+                              ? "text-[#141414]"
+                              : "text-gray-100"
+                          }`}
+                        >
+                          {data.name}
+                        </p>
+                        <p
+                          className={`text-sm ${
+                            theme === "light"
+                              ? "text-[#141414]"
+                              : "text-gray-400"
+                          }`}
+                        >
+                          {data.email}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-gray-600">Loading...</p>
+                    )}
+                  </div>
+                  <hr />
+                  <div className="p-2">
+                    <p
+                      className="block px-4 py-2 text-blue-600 rounded-lg cursor-pointer"
+                      onClick={() => setIsModalOpen(true)}
+                    >
+                      Favourite Colleges
+                    </p>
+                  </div>
+                  <div className="p-2">
+                    <button
+                      onClick={logout}
+                      className="flex flex-row items-center justify-center gap-4 w-full px-4 py-2 text-red-600 text-left rounded-lg"
+                    >
+                      Logout
+                      <FiLogOut />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
+          <CollegeInfo
+            selectedClg={selectedClg}
+            addToFavorites={addToFavorites}
+            removeFromFavorites={removeFromFavorites}
+            isFavorite={isFavorite}
+          />
         </div>
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+      <FavoritesModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        favorites={data ? data.favorites : []}
+      />
+    </div>
   );
 }
