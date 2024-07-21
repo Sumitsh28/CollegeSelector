@@ -61,7 +61,9 @@ export default function Home() {
       }
     };
 
-    getUserDetails();
+    if (typeof window !== "undefined") {
+      getUserDetails();
+    }
   }, [favorites]);
 
   const handleClgClick = (clg) => {
