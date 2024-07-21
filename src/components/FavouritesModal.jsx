@@ -40,33 +40,39 @@ const FavoritesModal = ({ isOpen, onClose, favorites }) => {
           Favourite Colleges
         </h2>
         <div className="space-y-4">
-          {favoriteList.map((college, index) => (
-            <div
-              key={index}
-              className={`p-4 ${
-                theme === "light" ? "bg-gray-200" : "bg-[#2D3035] "
-              } rounded-full shadow-3d cursor-pointer hover:shadow-3d-hover hover:bg-gray-800 ${
-                theme === "light" && "hover:text-gray-100"
-              }`}
-            >
-              <div className="flex flex-row items-center gap-8">
-                <h3
-                  className={`${
-                    theme === "light" ? "text-[#141414]" : "text-gray-100"
-                  } text-xl`}
-                >
-                  #{index + 1}
-                </h3>
-                <h3
-                  className={`${
-                    theme === "light" ? "text-[#141414]" : "text-gray-100"
-                  } `}
-                >
-                  {college.name}
-                </h3>
-              </div>
+          {favoriteList.length === 0 ? (
+            <div className="text-center text-gray-500">
+              No favorite colleges
             </div>
-          ))}
+          ) : (
+            favoriteList.map((college, index) => (
+              <div
+                key={index}
+                className={`p-4 ${
+                  theme === "light" ? "bg-gray-200" : "bg-[#2D3035]"
+                } rounded-full shadow-3d cursor-pointer hover:shadow-3d-hover hover:bg-gray-800 ${
+                  theme === "light" ? "hover:text-gray-100" : ""
+                }`}
+              >
+                <div className="flex flex-row items-center gap-8">
+                  <h3
+                    className={`${
+                      theme === "light" ? "text-[#141414]" : "text-gray-100"
+                    } text-xl`}
+                  >
+                    #{index + 1}
+                  </h3>
+                  <h3
+                    className={`${
+                      theme === "light" ? "text-[#141414]" : "text-gray-100"
+                    }`}
+                  >
+                    {college.name}
+                  </h3>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </motion.div>
     </div>

@@ -73,7 +73,6 @@ export default function Home() {
       }
     };
 
-    console.log("Fetching user details");
     getUserDetails();
   }, [favorites]);
 
@@ -248,7 +247,7 @@ export default function Home() {
                 <div
                   className={`absolute lg:left-20 lg:right-0 right-1 top-5 w-56 mt-2 ${
                     theme === "light" ? "bg-gray-400" : "bg-[#202226]"
-                  } rounded-3xl shadow-xl z-60`}
+                  } rounded-3xl shadow-xl z-50`}
                 >
                   <div className="p-4 text-white ">
                     {data ? (
