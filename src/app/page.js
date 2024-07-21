@@ -6,7 +6,7 @@ import { useTheme } from "../../src/context/ThemeContext.jsx";
 import { MdSunny } from "react-icons/md";
 import { IoMdMoon } from "react-icons/io";
 import Loader from "../../src/components/Loader.jsx";
-
+import { motion } from "framer-motion";
 import { FaUser } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import axios from "axios";
@@ -150,7 +150,12 @@ export default function Home() {
       }`}
     >
       <div className="lg:hidden">
-        <div className="fixed inset-0 bg-none bg-opacity-75 z-50 overflow-y-scroll">
+        <motion.div
+          initial={{ x: "-100%" }}
+          animate={{ x: showClgList ? 0 : "-100%" }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="fixed inset-0 bg-none bg-opacity-75 z-50 overflow-y-scroll"
+        >
           <div
             className={`w-[75%] p-4 ${
               theme === "light" ? "bg-gray-400" : "bg-[#202226]"
@@ -177,7 +182,7 @@ export default function Home() {
               />
             )}
           </div>
-        </div>
+        </motion.div>
 
         <button
           className="fixed bottom-6 right-6 bg-gray-900 rounded-full p-3 text-white z-50 block lg:hidden opacity-80"

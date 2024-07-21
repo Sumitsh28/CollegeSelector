@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import { IoStarOutline, IoStarSharp } from "react-icons/io5";
 import { MdLocationPin } from "react-icons/md";
 import MapModal from "./MapModal";
+import GalleryModal from "./GalleryModal";
+import { GrGallery } from "react-icons/gr";
 
 const animationVariants = {
   hidden: { opacity: 0, scale: 0.8 },
@@ -25,6 +27,7 @@ const CollegeInfo = ({
 }) => {
   const { theme } = useTheme();
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false); // State for gallery popup
 
   const handleOpenMap = () => {
     setIsMapOpen(true);
@@ -32,6 +35,14 @@ const CollegeInfo = ({
 
   const handleCloseMap = () => {
     setIsMapOpen(false);
+  };
+
+  const handleOpenGallery = () => {
+    setIsGalleryOpen(true);
+  };
+
+  const handleCloseGallery = () => {
+    setIsGalleryOpen(false);
   };
 
   const handleFavoriteToggle = () => {
@@ -62,21 +73,39 @@ const CollegeInfo = ({
             animate={{ scale: 1 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
-          <motion.h2
-            key={selectedClg.name}
-            className={`text-2xl text-center mb-4 p-4 ${
-              theme === "light" ? "bg-[#4B5563]" : "bg-[#5765F2]"
-            } rounded-full shadow-3d cursor-pointer hover:shadow-3d-hover ${
-              theme === "light" && "text-gray-200"
-            }`}
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            whileHover="hover"
-            variants={itemHoverVariants}
-          >
-            {selectedClg.name}
-          </motion.h2>
+          <div className="flex lg:flex-row flex-col items-center justify-center gap-5">
+            <motion.h2
+              key={selectedClg.name}
+              className={`text-2xl text-center p-4 ${
+                theme === "light" ? "bg-[#4B5563]" : "bg-[#5765F2]"
+              } rounded-full shadow-3d cursor-pointer hover:shadow-3d-hover ${
+                theme === "light" && "text-gray-200"
+              }`}
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              whileHover="hover"
+              variants={itemHoverVariants}
+            >
+              {selectedClg.name}
+            </motion.h2>
+            <motion.button
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              whileHover="hover"
+              variants={itemHoverVariants}
+              className={` px-4 py-2 ${
+                theme === "light" ? "bg-[#4B5563]" : "bg-[#5765F2]"
+              } ${
+                theme === "light" && "text-gray-200"
+              } rounded-full shadow-md flex flex-row items-center justify-center gap-3 text-lg `}
+              onClick={handleOpenGallery}
+            >
+              <GrGallery />
+              Gallery
+            </motion.button>
+          </div>
         </div>
         <div className="items-center mt-16 flex flex-row justify-center gap-8">
           <motion.p
@@ -163,6 +192,11 @@ const CollegeInfo = ({
         isOpen={isMapOpen}
         onClose={handleCloseMap}
         location={selectedClg.coordinates}
+      />
+      <GalleryModal
+        isOpen={isGalleryOpen}
+        onClose={handleCloseGallery}
+        images={selectedClg.gallery}
       />
     </>
   ) : (

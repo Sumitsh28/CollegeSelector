@@ -4,6 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "~slick-carousel/slick/slick.css";
+@import "~slick-carousel/slick/slick-theme.css";
+
 .shadow-3d {
   box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.3),
